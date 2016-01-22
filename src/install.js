@@ -1,0 +1,346 @@
+var async = require('async'),
+	utils = require('../public/src/utils.js'),
+	fs = require('fs'),
+	url = require('url'),
+	path = require('path'),
+	prompt = require('prompt'),
+	winston = require('winston'),
+	nconf = require('nconf'),
+
+	install = {
+		questions: [{
+			name: 'base_url',
+			description: 'URL of this installation',
+			'default': nconf.get('base_url') || 'http://localhost',
+			pattern: /^http(?:s)?:\/\//,
+			message: 'Base URL must begin with \'http://\' or \'https://\'',
+		}, {
+			name: 'port',
+			description: 'Port number of your discuss',
+			'default': nconf.get('port') || 4567,
+            pattern: /[0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5]/,
+            message: 'Please enter a value betweeen 1 and 65535'
+		}, {
+			name: 'use_port',
+			description: 'Use a port number to access discuss?',
+			'default': (nconf.get('use_port') ? 'y' : 'n') || 'y',
+			pattern: /y[es]*|n[o]?/,
+			message: 'Please enter \'yes\' or \'no\'',
+		}, {
+			name: 'secret',
+			description: 'Please enter a discuss secret',
+			'default': nconf.get('secret') || utils.generateUUID()
+		}, {
+			name: 'redis:host',
+			description: 'Host IP or address of your Redis instance',
+			'default': nconf.get('redis:host') || '127.0.0.1'
+		}, {
+			name: 'redis:port',
+			description: 'Host port of your Redis instance',
+			'default': nconf.get('redis:port') || 6379
+		}, {
+			name: 'redis:password',
+			description: 'Password of your Redis database'
+		}, {
+			name: "redis:database",
+			description: "Which database to use (0..n)",
+			'default': nconf.get('redis:database') || 0
+		}, {
+			name: 'bind_address',
+			description: 'IP or Hostname to bind to',
+			'default': nconf.get('bind_address') || '0.0.0.0'
+		}],
+		category: function (callback) {
+		  callback(null);
+		},
+		setup: function (callback) {
+			async.series([
+				function(next) {
+					// Check if the `--setup` flag contained values we can work with
+					var	setupVal;
+					try {
+						setupVal = JSON.parse(nconf.get('setup'));
+					} catch (e) {
+						setupVal = undefined;
+					}
+
+					if (setupVal && setupVal instanceof Object) {
+						if (setupVal['admin:username'] && setupVal['admin:password'] && setupVal['admin:email']) {
+							install.values = setupVal;
+							next();
+						} else {
+							winston.error('Required values are missing for automated setup:');
+							if (!setupVal['admin:username']) winston.error('  admin:username');
+							if (!setupVal['admin:password']) winston.error('  admin:password');
+							if (!setupVal['admin:email']) winston.error('  admin:email');
+							process.exit();
+						}
+					} else next();
+				},
+				function (next) {
+					var	success = function(err, config) {
+						if (!config) {
+							return next(new Error('aborted'));
+						}
+
+						// Translate redis properties into redis object
+						config.redis = {
+							host: config['redis:host'],
+							port: config['redis:port'],
+							password: config['redis:password'],
+							database: config['redis:database']
+						};
+						delete config['redis:host'];
+						delete config['redis:port'];
+						delete config['redis:password'];
+						delete config['redis:database'];
+
+						// Add hardcoded values
+						config.bcrypt_rounds = 12;
+						config.upload_path = '/public/uploads';
+						config.use_port = (config.use_port.slice(0, 1) === 'y') ? true : false;
+
+						var urlObject = url.parse(config.base_url),
+							relative_path = (urlObject.pathname && urlObject.pathname.length > 1) ? urlObject.pathname : '',
+							host = urlObject.host,
+							protocol = urlObject.protocol,
+							server_conf = config,
+							client_conf = {
+								relative_path: relative_path
+							};
+
+						server_conf.base_url = protocol + '//' + host;
+						server_conf.relative_path = relative_path;
+
+						install.save(server_conf, client_conf, next);
+					};
+
+					// prompt prepends "prompt: " to questions, let's clear that.
+					prompt.start();
+					prompt.message = '';
+					prompt.delimiter = '';
+
+					if (!install.values) prompt.get(install.questions, success);
+					else {
+						// Use provided values, fall back to defaults
+						var	config = {},
+							question, x, numQ;
+						for(x=0,numQ=install.questions.length;x<numQ;x++) {
+							question = install.questions[x];
+							config[question.name] = install.values[question.name] || question['default'] || '';
+						}
+						success(null, config);
+					}
+				},
+				function (next) {
+					// Applying default database configs
+					winston.info('Populating database with default configs, if not already set...');
+					var meta = require('./meta'),
+						defaults = [{
+							field: 'postDelay',
+							value: 10000
+						}, {
+							field: 'minimumPostLength',
+							value: 10
+						}, {
+							field: 'allowGuestPosting',
+							value: 0
+						}, {
+							field: 'minimumTitleLength',
+							value: 5
+						}, {
+							field: 'minimumUsernameLength',
+							value: 2
+						}, {
+							field: 'maximumUsernameLength',
+							value: 16
+						}, {
+							field: 'minimumPasswordLength',
+							value: 6
+						}, {
+							field: 'imgurClientID',
+							value: ''
+						}, {
+							field: 'maximumProfileImageSize',
+							value: 256
+						}, {
+							field: 'theme:type',
+							value: 'local'
+						}, {
+							field: 'theme:id',
+							value: 'discuss-theme-cerulean'
+						}];
+
+					async.each(defaults, function (configObj, next) {
+						meta.configs.setOnEmpty(configObj.field, configObj.value, next);
+					}, function (err) {
+						meta.configs.init(next);
+					});
+				},
+				function (next) {
+					// Check if an administrator needs to be created
+					var Groups = require('./groups');
+
+					Groups.getGidFromName('Administrators', function (err, gid) {
+						if (err) {
+							return next(err.message);
+						}
+
+						if (gid) {
+							Groups.get(gid, {}, function (err, groupObj) {
+								if (groupObj.count > 0) {
+									winston.info('Administrator found, skipping Admin setup');
+									next();
+								} else {
+									install.createAdmin(next);
+								}
+							});
+						} else {
+							install.createAdmin(next);
+						}
+					});
+				},
+				function (next) {
+					// Categories
+					var Categories = require('./categories'),
+						admin = {
+							categories: require('./admin/categories')
+						};
+
+					Categories.getAllCategories(function (data) {
+						if (data.categories.length === 0) {
+							winston.info('No categories found, populating instance with default categories');
+
+							fs.readFile(path.join(__dirname, '../', 'install/data/categories-' + (process.env.ENV_CONFIG || 'dev') + '.json'), function (err, default_categories) {
+								default_categories = JSON.parse(default_categories);
+
+								async.eachSeries(default_categories, function (category, next) {
+									admin.categories.create(category, next);
+								}, function (err) {
+									if (!err) {
+										next();
+									} else {
+										winston.error('Could not set up categories');
+									}
+								});
+							});
+						} else {
+							winston.info('Categories OK. Found ' + data.categories.length + ' categories.');
+							next();
+						}
+					});
+				},
+				function (next) {
+					// Default plugins
+					var Plugins = require('./plugins');
+
+					winston.info('Enabling default plugins');
+
+					var defaultEnabled = [
+						'discuss-plugin-markdown', 'discuss-plugin-mentions'
+					];
+
+					async.each(defaultEnabled, function (pluginId, next) {
+						Plugins.isActive(pluginId, function (err, active) {
+							if (!active) {
+								Plugins.toggleActive(pluginId, function () {
+									next();
+								});
+							} else {
+								next();
+							}
+						});
+					}, next);
+				}
+			], function (err) {
+				if (err) {
+					winston.warn('discuss Setup Aborted.');
+					process.exit();
+				} else {
+					callback();
+				}
+			});
+		},
+		createAdmin: function (callback) {
+			var User = require('./user'),
+				Groups = require('./groups');
+
+			winston.warn('No administrators have been detected, running initial user setup');
+			var questions = [{
+					name: 'username',
+					description: 'Administrator username',
+					required: true,
+					type: 'string'
+				}, {
+					name: 'email',
+					description: 'Administrator email address',
+					pattern: /.+@.+/,
+					required: true
+				}, {
+					name: 'password',
+					description: 'Password',
+					required: true,
+					hidden: true,
+					type: 'string'
+				}],
+				success = function(err, results) {
+					if (!results) {
+						return callback(new Error('aborted'));
+					}
+
+					nconf.set('bcrypt_rounds', 12);
+					User.create(null, results.username, results.password, results.email, null, function (err, uid) {
+						if (err) {
+							winston.warn(err.message + ' Please try again.');
+							return callback(new Error('invalid-values'));
+						}
+
+						Groups.getGidFromName('Administrators', function (err, gid) {
+							if (gid) {
+								Groups.join(gid, uid, callback);
+							} else {
+								Groups.create('Administrators', 'Forum Administrators', function (err, groupObj) {
+									Groups.join(groupObj.gid, uid, callback);
+								});
+							}
+						});
+					});
+				};
+
+			if (!install.values) prompt.get(questions, success);
+			else {
+				var results = {
+						username: install.values['admin:username'],
+						email: install.values['admin:email'],
+						password: install.values['admin:password']
+					};
+
+				success(null, results);
+			}
+		},
+		save: function (server_conf, client_conf, callback) {
+			// Server Config
+			async.parallel([
+				function (next) {
+					fs.writeFile(path.join(__dirname, '../', 'config.json'), JSON.stringify(server_conf, null, 4), function (err) {
+						next(err);
+					});
+				},
+				function (next) {
+					fs.writeFile(path.join(__dirname, '../', 'public', 'config.json'), JSON.stringify(client_conf, null, 4), function (err) {
+						next(err);
+					});
+				}
+			], function (err) {
+				winston.info('Configuration Saved OK');
+
+				nconf.file({
+					file: path.join(__dirname, '..', 'config.json')
+				});
+
+				callback(err);
+			});
+		}
+	};
+
+module.exports = install;

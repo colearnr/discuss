@@ -1,0 +1,286 @@
+var user = require('./../user.js'),
+	auth = require('./authentication.js'),
+	topics = require('./../topics.js'),
+	posts = require('./../posts.js'),
+	categories = require('./../categories.js'),
+	utils = require('./../../public/src/utils.js'),
+	pkg = require('../../package.json'),
+	meta = require('./../meta.js'),
+	path = require('path'),
+	nconf = require('nconf'),
+	config = require('../../public/config.json'),
+	async = require('async');
+
+
+(function (Api) {
+	Api.create_routes = function (app) {
+		app.namespace('/api', function () {
+			app.get('/get_templates_listing', function (req, res) {
+				utils.walk(path.join(__dirname, '../../', 'public/templates'), function (err, data) {
+					res.json(data);
+				});
+			});
+
+			app.get('/config', function (req, res, next) {
+				config.postDelay = meta.config.postDelay;
+				config.minimumTitleLength = meta.config.minimumTitleLength;
+				config.minimumPostLength = meta.config.minimumPostLength;
+				config.imgurClientIDSet = !! meta.config.imgurClientID;
+				config.minimumUsernameLength = meta.config.minimumUsernameLength;
+				config.maximumUsernameLength = meta.config.maximumUsernameLength;
+				config.minimumPasswordLength = meta.config.minimumPasswordLength;
+				config.useOutgoingLinksPage = meta.config.useOutgoingLinksPage;
+				res.status(200).json(config);
+			});
+
+			app.get('/home', function (req, res) {
+				var uid = (req.user) ? req.user.uid : null;
+				categories.getAllCategories(function (data) {
+					data.categories = data.categories.filter(function (category) {
+						return (!category.disabled || category.disabled === "0");
+					});
+
+					function iterator(category, callback) {
+						categories.getRecentReplies(category.cid, 2, function (posts) {
+							category.posts = posts;
+							category.post_count = posts.length > 2 ? 2 : posts.length;
+							callback(null);
+						});
+					}
+
+					async.each(data.categories, iterator, function (err) {
+						data.motd_class = (meta.config.show_motd === '1' || meta.config.show_motd === undefined) ? '' : 'none';
+						data.motd = require('marked')(meta.config.motd || "Welcome to discussions @ CoLearnr");
+						res.json(data);
+					});
+
+				}, uid);
+			});
+
+			app.get('/login', function (req, res) {
+				var data = {},
+					login_strategies = auth.get_login_strategies(),
+					num_strategies = login_strategies.length;
+
+				if (num_strategies == 0) {
+					data = {
+						'login_window:spansize': 'col-md-12',
+						'alternate_logins:display': 'none'
+					};
+				} else {
+					data = {
+						'login_window:spansize': 'col-md-6',
+						'alternate_logins:display': 'block'
+					}
+					for (var i = 0, ii = num_strategies; i < ii; i++) {
+						data[login_strategies[i] + ':display'] = 'active';
+					}
+				}
+
+				data.token = res.locals.csrf_token;
+
+				res.json(data);
+			});
+
+			app.get('/register', function (req, res) {
+				var data = {},
+					login_strategies = auth.get_login_strategies(),
+					num_strategies = login_strategies.length;
+
+				if (num_strategies == 0) {
+					data = {
+						'register_window:spansize': 'col-md-12',
+						'alternate_logins:display': 'none'
+					};
+				} else {
+					data = {
+						'register_window:spansize': 'col-md-6',
+						'alternate_logins:display': 'block'
+					}
+					for (var i = 0, ii = num_strategies; i < ii; i++) {
+						data[login_strategies[i] + ':display'] = 'active';
+					}
+				}
+
+				data.token = res.locals.csrf_token;
+				data.minimumUsernameLength = meta.config['minimumUsernameLength'];
+				data.maximumUsernameLength = meta.config['maximumUsernameLength'];
+				data.minimumPasswordLength = meta.config['minimumPasswordLength'];
+				res.json(data);
+			});
+
+			app.get('/topic/:id/:slug?', function (req, res, next) {
+				//console.log('topic. User is', req.user);
+				var uid = (req.user) ? req.user.uid : null;
+				var lbit_oid = (req.query && req.query.lbit_oid) ? req.query.lbit_oid : null;
+				topics.getTopicWithPosts(req.params.id, lbit_oid, uid, 0, 10, function (err, data) {
+					if (!err) {
+						if (data.deleted === '1' && data.expose_tools === 0) {
+							return res.status(404).json({});
+						}
+						res.json(data);
+					} else {
+						console.error(err, data);
+						next();
+					}
+				});
+			});
+
+			app.get('/category/:id/:slug?', function (req, res, next) {
+				//console.log('category. User is', req.user);
+				var uid = (req.user) ? req.user.uid : null;
+				categories.getCategoryById(req.params.id, uid, function (err, data) {
+					if (!err && data && data.disabled === "0") {
+						res.json(data);
+					} else {
+						console.error(err, data);
+						next();
+					}
+				}, req.params.id, uid);
+			});
+
+			app.get('/recent/:term?', function (req, res) {
+				var uid = (req.user) ? req.user.uid : null;
+				topics.getLatestTopics(uid, 0, 19, req.params.term, function (data) {
+					res.json(data);
+				});
+			});
+
+			app.get('/unread', function (req, res) {
+				var uid = (req.user) ? req.user.uid : null;
+				topics.getUnreadTopics(uid, 0, 19, function (data) {
+					res.json(data);
+				});
+			});
+
+			app.get('/unread/total', function (req, res) {
+				var uid = (req.user) ? req.user.uid : null;
+				topics.getTotalUnread(uid, function (data) {
+					res.json(data);
+				});
+			});
+
+			app.get('/notifications', function(req, res) {
+				console.log('notifications', req.user);
+				if (req.user && req.user.uid) {
+					user.notifications.getAll(req.user.uid, null, null, function(err, notifications) {
+						res.json({
+							notifications: notifications
+						});
+					});
+				} else res.send(403);
+			});
+
+			app.get('/confirm/:id', function (req, res) {
+				user.email.confirm(req.params.id, function (data) {
+					if (data.status === 'ok') {
+						res.json({
+							'alert-class': 'alert-success',
+							title: 'Email Confirmed',
+							text: 'Thank you for vaidating your email. Your account is now fully activated.'
+						});
+					} else {
+						res.json({
+							'alert-class': 'alert-error',
+							title: 'An error occurred...',
+							text: 'There was a problem validating your email address. Perhaps the code was invalid or has expired.'
+						});
+					}
+				});
+			});
+
+			app.get('/outgoing', function (req, res) {
+				var url = req.query.url;
+
+				if (url) {
+					res.json({
+						url: url
+					});
+				} else {
+					res.status(404);
+					res.redirect(nconf.get('relative_path') + '/404');
+				}
+			});
+
+			app.get('/search', function (req, res) {
+				return res.json({
+					show_no_topics: 'hide',
+					show_no_posts: 'hide',
+					show_results: 'hide',
+					search_query: '',
+					posts: [],
+					topics: []
+				});
+			});
+
+			app.get('/search/:term', function (req, res, next) {
+
+				var reds = require('../reds');
+				var postSearch = reds.createSearch('nodebbpostsearch');
+				var topicSearch = reds.createSearch('nodebbtopicsearch');
+
+				function search(searchObj, callback) {
+					searchObj
+						.query(query = req.params.term).type('or')
+						.end(callback);
+				}
+
+				function searchPosts(callback) {
+					search(postSearch, function (err, pids) {
+						if (err)
+							return callback(err, null);
+
+						posts.getPostSummaryByPids(pids, function (err, posts) {
+							if (err)
+								return callback(err, null);
+							callback(null, posts);
+						});
+					})
+				}
+
+				function searchTopics(callback) {
+					search(topicSearch, function (err, tids) {
+						if (err)
+							return callback(err, null);
+
+						topics.getTopicsByTids(tids, 0, function (topics) {
+							callback(null, topics);
+						}, 0);
+					});
+				}
+
+				async.parallel([searchPosts, searchTopics], function (err, results) {
+					if (err)
+						return next();
+
+					return res.json({
+						show_no_topics: results[1].length ? 'hide' : '',
+						show_no_posts: results[0].length ? 'hide' : '',
+						show_results: '',
+						search_query: req.params.term,
+						posts: results[0],
+						topics: results[1]
+					});
+				});
+			});
+
+			app.get('/reset', function (req, res) {
+				res.json({});
+			});
+
+			app.get('/reset/:code', function (req, res) {
+				res.json({
+					reset_code: req.params.code
+				});
+			});
+
+			app.get('/404', function (req, res) {
+				res.json({});
+			});
+
+			app.get('/403', function (req, res) {
+				res.json({});
+			});
+		});
+	}
+}(exports));

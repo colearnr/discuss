@@ -1,0 +1,39 @@
+<% if(locals.random_topics && random_topics.length > 0) { %>
+    <% random_topics.forEach(function(menu){ %>
+    <li data-submenu-id="submenu-<%- menu._id %>">
+        <a class="needsclick" href="<%- app_home %>/topic/<%- menu._id %>/<%- menu.id %>"><% if (menu.collaborators && menu.collaborators.indexOf(user._id) != -1) { %><i class="fa fa-group topicIcon" title="Collaborator"></i> &nbsp;<% } else if (menu.privacy_mode == "public") { %><i class="fa fa-globe topicIcon" title="Public topic"></i> &nbsp;<% } else if (menu.privacy_mode == "private") { %><i class="fa fa-lock topicIcon" title="Private topic"></i> &nbsp;<% } %><%- menu.name %></a>
+        <% if(menu.submenuList && menu.submenuList.length > 0) { %>
+        <div id="submenu-<%- menu._id %>" class="popover">
+            <h3 class="popover-title"><%- menu.name %> <a class="topic-map-menu" href="<%- app_home %>/topic/map/<%- menu._id %>">Map</a></h3>
+            <div class="popover-content">
+                <ul style="margin-left: -30px;">
+                    <% menu.submenuList.forEach(function(submenu){ %>
+                    <li class="level"><a class="needsclick" href="<%- app_home %>/topic/<%- submenu._id %>/<%- submenu.id %>"><% if (submenu.collaborators && submenu.collaborators.indexOf(user._id) != -1) { %><i class="fa fa-group topicIcon" title="Collaborator"></i> &nbsp;<% } else if (submenu.privacy_mode == "public") { %><i class="fa fa-globe topicIcon" title="Public topic"></i> &nbsp;<% } else if (submenu.privacy_mode == "private") { %><i class="fa fa-lock topicIcon" title="Private topic"></i> &nbsp;<% } %><%- submenu.name %></a></li>
+                    <% }) %>
+                </ul>
+            </div>
+        </div>
+        <% } %>
+    </li>
+    <% }) %>
+<% } %>
+<% if(locals.session && session.recently_visited_topics && session.recently_visited_topics.length > 0) { %>
+    <li class="menu-category">Recently Visited</li>
+    <% session.recently_visited_topics.forEach(function(menu){ %>
+    <li data-submenu-id="submenu-<%- menu._id %>">
+        <a class="needsclick" href="<%- app_home %>/topic/<%- menu._id %>/<%- menu.id %>"><% if (menu.collaborators && menu.collaborators.indexOf(user._id) != -1) { %><i class="fa fa-group topicIcon" title="Collaborator"></i> &nbsp;<% } else if (menu.privacy_mode == "public") { %><i class="fa fa-globe topicIcon" title="Public topic"></i> &nbsp;<% } else if (menu.privacy_mode == "private") { %><i class="fa fa-lock topicIcon" title="Private topic"></i> &nbsp;<% } %><%- menu.name %></a>
+        <% if(menu.submenuList && menu.submenuList.length > 0) { %>
+        <div id="submenu-<%- menu._id %>" class="popover">
+            <h3 class="popover-title"><%- menu.name %> <a class="topic-map-menu" href="<%- app_home %>/topic/map/<%- menu._id %>">Map</a></h3>
+            <div class="popover-content">
+                <ul style="margin-left: -30px;">
+                    <% menu.submenuList.forEach(function(submenu){ %>
+                    <li class="level"><a class="needsclick" href="<%- app_home %>/topic/<%- submenu._id %>/<%- submenu.id %>"><% if (submenu.collaborators && submenu.collaborators.indexOf(user._id) != -1) { %><i class="fa fa-group topicIcon" title="Collaborator"></i> &nbsp;<% } else if (submenu.privacy_mode == "public") { %><i class="fa fa-globe topicIcon" title="Public topic"></i> &nbsp;<% } else if (submenu.privacy_mode == "private") { %><i class="fa fa-lock topicIcon" title="Private topic"></i> &nbsp;<% } %><%- submenu.name %></a></li>
+                    <% }) %>
+                </ul>
+            </div>
+        </div>
+        <% } %>
+    </li>
+    <% }) %>
+<% } %>

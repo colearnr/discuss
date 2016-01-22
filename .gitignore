@@ -1,0 +1,13 @@
+.DS_Store
+npm-debug.log
+node_modules/
+sftp-config.json
+public/src/discuss.min.js
+*.sublime-project
+*.sublime-workspace
+.project
+*.swp
+Vagrantfile
+.vagrant
+provision.sh
+*.log

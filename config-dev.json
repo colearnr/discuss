@@ -1,0 +1,34 @@
+{
+    "base_url": "http://localhost",
+    "port": "4567",
+    "use_port": true,
+    "secret": "colearnr-webapp-secret-CHANGEMEFOLKS",
+    "bind_address": "127.0.0.1",
+    "cookieDomain" : "localhost",
+    "redis": {
+        "host": "127.0.0.1",
+        "port": "6379",
+        "password": "",
+        "database": "0"
+    },
+    "mongo": {
+        "host": "127.0.0.1:27017",
+        "database": "colearnr"
+    },
+    "bcrypt_rounds": 12,
+    "upload_path": "/public/uploads/",
+    "relative_path": "",
+    "api_url": "http://localhost:4567/api/",
+    "app_login" : "http://localhost:8080/login",
+    "app_home" : "http://localhost:8080",
+    "cdn_prefix": "",
+    "cdn_contrib_prefix": "dev",
+    "socket_server": "http://localhost:4567",
+    "use_client_host": false,
+    "topic_guest_access_allowed": true,
+    "enable_search_robots": false,
+    "upload_server_prefix": "",
+    "use_cluster": false,
+    "mongo_username": null,
+    "mongo_password": null
+}

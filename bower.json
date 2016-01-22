@@ -1,0 +1,23 @@
+{
+  "name": "discuss-app-tagus",
+  "version": "1.13.3",
+  "authors": [
+    "CoLearnr <hello@colearnr.com>"
+  ],
+  "description": "Discussion Engine for CoLearnr",
+  "main": "app.js",
+  "license": "Commercial",
+  "homepage": "http://www.colearnr.com",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "fontawesome": "~4.2.0",
+    "summernote": "git://github.com/colearnr/summernote.git#0.6.2"
+  }
+}
