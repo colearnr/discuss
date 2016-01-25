@@ -3,7 +3,7 @@
   "description": "CoLearnr discussion Forum",
   "version": "1.0.0",
   "homepage": "https://www.colearnr.com",
-  "license": "GPLv3",
+  "license": "GPL-3.0",
   "private": false,
   "scripts": {
     "start": "NODE_ENV=development nodemon --watch src --watch public app",
