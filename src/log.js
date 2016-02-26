@@ -1,14 +1,15 @@
-var winston = require('winston');
+var winston = require('winston')
 
 var log = new (winston.Logger)({
-    transports: [
-        new (winston.transports.Console)({
-                handleExceptions: false,
-                json: false,
-                timestamp: true,
-                level: (!process.env.ENV_CONFIG || 'dev' == process.env.ENV_CONFIG || 'dev-test' == process.env.ENV_CONFIG) ? 'debug' : 'info'
-            })
-    ]
-});
+  exitOnError: false,
+  transports: [
+    new (winston.transports.Console)({
+      handleExceptions: true,
+      json: false,
+      timestamp: true,
+      level: (process.env.NODE_ENV === 'development') ? 'debug' : 'info'
+    })
+  ]
+})
 
-module.exports = log;
+module.exports = log

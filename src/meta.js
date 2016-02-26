@@ -210,7 +210,7 @@ var utils = require('./../public/src/utils.js'),
 					return path.join(__dirname, '..', '/public', jsPath);
 				});
 
-			if (process.env.NODE_ENV !== 'development' && (!process.env.ENV_CONFIG || 'dev' == process.env.ENV_CONFIG) ) {
+			if (process.env.NODE_ENV !== 'development') {
 				async.parallel({
 					mtime: function (next) {
 						async.map(jsPaths, fs.stat, function (err, stats) {
