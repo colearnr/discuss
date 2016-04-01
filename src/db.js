@@ -1,16 +1,18 @@
-var nconf = require('nconf'),
-	cluster = require('cluster'),
- 	numCPUs = require('os').cpus().length,
-	maxPoolSize = nconf.get('db_pool_size') || 10,
-	authPrefix = '';
+'use strict'
+let nconf = require('nconf')
+let numCPUs = require('os').cpus().length
+let maxPoolSize = nconf.get('db_pool_size') || 10
+let authPrefix = ''
+let username = nconf.get('MONGO_USERNAME') || nconf.get('mongo_username')
+let password = nconf.get('MONGO_PASSWORD') || nconf.get('mongo_password')
 if (nconf.get('use_cluster')) {
-	maxPoolSize = Math.round(maxPoolSize / numCPUs);
+  maxPoolSize = Math.round(maxPoolSize / numCPUs)
 }
-if (nconf.get('mongo_username') && nconf.get('mongo_password')) {
-	authPrefix = nconf.get('mongo_username') + ':' + nconf.get('mongo_password')  + '@';
+if (username && password) {
+  authPrefix = username + ':' + password + '@'
 }
-var databaseURI = authPrefix + (process.env.MONGO_HOST || nconf.get('mongo:host') || 'localhost') + '/' + (process.env.MONGO_DB_NAME || nconf.get('mongo:database') ||  'colearnr') + '?slaveOk=true&maxPoolSize=' + maxPoolSize;
-var collections = ['users', 'topics', 'learnbits', 'urls']
-    , db = require('mongojs').connect(databaseURI, collections);
+let databaseURI = authPrefix + (process.env.MONGO_HOST || nconf.get('mongo:host') || 'localhost') + '/' + (process.env.MONGO_DB_NAME || nconf.get('mongo:database') || 'colearnr') + '?slaveOk=true&maxPoolSize=' + maxPoolSize
+let collections = ['users', 'topics', 'learnbits', 'urls']
+let db = require('mongojs').connect(databaseURI, collections)
 
-module.exports = db;
+module.exports = db
