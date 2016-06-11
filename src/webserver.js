@@ -6,6 +6,7 @@ var express = require('express'),
   session = require('express-session'),
   bodyParser = require('body-parser'),
   favicon = require('serve-favicon'),
+  helmet = require('helmet'),
   server = require('http').createServer(WebServer),
   RedisStore = require('connect-redis')(session),
   cookieParser = require('cookie-parser'),
@@ -239,6 +240,7 @@ if (nconf.get('use_cluster') && cluster.isMaster) {
     async.series([
       function (next) {
         // Pre-router middlewares
+        app.use(helmet());
         app.use(compression({threshold: 512}))
 
         app.use(favicon(path.join(__dirname, '../', 'public', 'favicon.ico')))
