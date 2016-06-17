@@ -1,8 +1,8 @@
 'use strict'
 const nconf = require('nconf')
 const numCPUs = require('os').cpus().length
-const maxPoolSize = nconf.get('db_pool_size') || 10
-const authPrefix = ''
+let maxPoolSize = nconf.get('db_pool_size') || 10
+let authPrefix = ''
 const username = nconf.get('MONGO_USERNAME') || nconf.get('mongo_username')
 const password = nconf.get('MONGO_PASSWORD') || nconf.get('mongo_password')
 if (nconf.get('use_cluster')) {
