@@ -1,7 +1,7 @@
 {
   "name": "discuss-app",
   "description": "CoLearnr discussion Forum",
-  "version": "1.0.0",
+  "version": "1.0.0-alpha1",
   "homepage": "https://www.colearnr.com",
   "license": "GPL-3.0",
   "private": false,
@@ -14,7 +14,7 @@
   },
   "main": "app.js",
   "dependencies": {
-    "acl": "git://github.com/colearnr/node_acl.git#0.4.7",
+    "acl": "git://github.com/colearnr/node_acl.git#0.4.8",
     "async": "^1.5.2",
     "bcrypt": "^0.8.6",
     "bitly": "^4.1.1",
