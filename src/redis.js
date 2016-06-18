@@ -6,14 +6,14 @@
 		utils = require('./../public/src/utils.js'),
 		winston = require('winston'),
 		nconf = require('nconf'),
-		redis_socket_or_host = nconf.get('redis:host');
+		redis_socket_or_host = process.env.REDIS_HOST || nconf.get('redis:host');
 
 	if (redis_socket_or_host && redis_socket_or_host.indexOf('/')>=0) {
 		/* If redis.host contains a path name character, use the unix dom sock connection. ie, /tmp/redis.sock */
-		RedisDB = redis.createClient(nconf.get('redis:host'));
+		RedisDB = redis.createClient(process.env.REDIS_HOST || nconf.get('redis:host'));
 	} else {
 		/* Else, connect over tcp/ip */
-		RedisDB = redis.createClient(nconf.get('redis:port'), nconf.get('redis:host'));
+		RedisDB = redis.createClient(nconf.get('redis:port'), process.env.REDIS_HOST|| nconf.get('redis:host'));
 	}
 
   RedisDB.on('error', function (err) {
