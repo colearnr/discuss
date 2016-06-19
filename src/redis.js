@@ -13,7 +13,7 @@
 		RedisDB = redis.createClient(process.env.REDIS_HOST || nconf.get('redis:host'));
 	} else {
 		/* Else, connect over tcp/ip */
-		RedisDB = redis.createClient(nconf.get('redis:port'), process.env.REDIS_HOST|| nconf.get('redis:host'));
+		RedisDB = redis.createClient(nconf.get('redis:port'), process.env.REDIS_HOST || nconf.get('redis:host'));
 	}
 
   RedisDB.on('error', function (err) {
