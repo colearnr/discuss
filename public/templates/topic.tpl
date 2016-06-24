@@ -21,7 +21,7 @@
 		<div class="thread_active_users active-users pull-right"></div>
 	</ol>
 
-	<ul id="post-container" class="container" data-tid="{topic_id}">
+	<ul id="post-container" class="" data-tid="{topic_id}">
 		<!-- BEGIN main_posts -->
 			<a id="post_anchor_{main_posts.pid}" name="{main_posts.pid}"></a>
 			<li class="row post-row main-post" data-pid="{main_posts.pid}" data-uid="{main_posts.uid}" data-username="{main_posts.username}" data-deleted="{main_posts.deleted}" itemscope itemtype="http://schema.org/Article">

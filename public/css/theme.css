@@ -1500,7 +1500,7 @@ noscript .posts li .profile span {
 
 .post-window>div .btn-toolbar.action-bar {
     width: 90%;
-    margin: 8px auto 0 auto
+    margin: 5px auto 0 auto
 }
 
 .post-window>div .commenttitle {
@@ -1586,6 +1586,8 @@ noscript .posts li .profile span {
         position: static;
         width: 100% !important;
         bottom: -60px;
+        background: #FFF;
+        padding: 0 0px 0 0px;
     }
     .note-editor {
         margin-top: 0px;
@@ -1676,3 +1678,34 @@ noscript .posts li .profile span {
     }
 }
 
+#info {
+    font-size: 20px;
+}
+#div_start {
+    float: right;
+    position: relative;
+    top: -100px;
+}
+#headline {
+    text-decoration: none
+}
+#results {
+    font-size: 14px;
+    font-weight: bold;
+    border: 1px solid #ddd;
+    padding: 15px;
+    text-align: left;
+    min-height: 150px;
+}
+#start_button {
+    border: 0;
+    background-color:transparent;
+    padding: 1px;
+}
+.interim {
+    color: gray;
+}
+.final {
+    color: black;
+    padding-right: 3px;
+}

@@ -22,57 +22,7 @@
           maxHeight: '100px',
           focus: true,
           disableLinkTarget: true,
-          disableLinkEmbed: false,
-          plugins: {
-            video: {
-              uploadServerPrefix: '<%- config.upload_server_prefix %>',
-              storatePath: '<%- config.cdn_contrib_prefix || 'colearnr' %>/learnbits/<%- user._id %>/',
-              urlPrefix: '<%- locals.host_url %>/embed?topicId=<%- locals.topicId || 'discuss' %>',
-              embedSize: embedSize
-            }
-          },
-          onCreateLink: function (url, $editable, linkInfo, options) {
-            if (linkInfo && !linkInfo.embedLink) {
-                return url;
-            }
-            var lbit_url_prefix = "lbit=",
-              base_url = "<%- app_home %>",
-              CL_COM = "colearnr.com",
-              media_regex = [/youtube\.com\/watch/i, /youtu\.be/i, /vimeo\.com/i, /\.m3u8/i, /\.f4m/i, /rtmp:\/\//i, /\.mp3/i, /\.m4a/i, /\.pdf/i, /\.swf/i],
-              dom = $.summernote.core.dom,
-              $editor = $(".note-editor"),
-              layoutInfo = dom.buildLayoutInfo($editor);
-            if (url.indexOf(lbit_url_prefix) != -1) {
-              var lindex = url.indexOf(lbit_url_prefix);
-              var lbit_id = url.substring(lindex + 5);
-              if (lbit_id) {
-                lbit_id = lbit_id.split('/')[0];
-                var iurl = "<%- app_home %>/lbit/embed/" + lbit_id + "?topicId=<%- locals.topicId || 'discuss' %>&embedSize=" + embedSize;
-                $.summernote.pluginEvents['createVideoNode'](layoutInfo, iurl, embedSize);
-                return true;
-              }
-            } else if (url.indexOf(base_url) != -1 || url.indexOf(CL_COM) != -1) {
-                var iurl = "<%- app_home %>/embed?topicId=<%- locals.topicId || 'discuss' %>&url=" + encodeURIComponent(url) + "&embedSize=" + embedSize;
-                $.summernote.pluginEvents['createIFrameNode'](layoutInfo, iurl, embedSize);
-                return true;
-            } else {
-              var handled = false;
-              media_regex.forEach(function(aregex) {
-                if (url.match(aregex)) {
-                  var iurl = "<%- app_home %>/embed?topicId=<%- locals.topicId || 'discuss' %>&url=" + encodeURIComponent(url) + "&embedSize=" + embedSize;
-                  $.summernote.pluginEvents['createVideoNode'](layoutInfo, iurl, embedSize);
-                  handled = true;
-                  return true;
-                }
-              });
-              if (!handled) {
-                $.summernote.pluginEvents['createSimpleLinkNode'](layoutInfo, iurl, linkInfo);
-                return true;
-              } else {
-                return handled;
-              }
-            }
-          }
+          disableLinkEmbed: false
         };
 
         if ($el.data("minimal")) {
@@ -126,10 +76,98 @@
         }
         $el.summernote(options);
         $('.note-editable').css('height', '100px').css('max-height', '100px');
-        $('.note-editable').get(0).focus();
         $('.note-editable').attr('x-webkit-speech', 'true');
       });
     }
+  }
+
+  var final_transcript = '';
+  var recognizing = false;
+  var ignore_onend;
+  var start_timestamp;
+  if (!('webkitSpeechRecognition' in window)) {
+    $('#start_button').css('display', 'none');
+  } else {
+    $('#start_button').css('display', 'inline-block');
+    var recognition = new webkitSpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+
+    recognition.onstart = function() {
+      recognizing = true;
+      start_img.src = '/images/mic-animate.gif';
+    };
+
+    recognition.onerror = function(event) {
+      if (event.error == 'no-speech') {
+        start_img.src = '/images/mic.gif';
+        ignore_onend = true;
+      }
+      if (event.error == 'audio-capture') {
+        start_img.src = '/images/mic.gif';
+        ignore_onend = true;
+      }
+      if (event.error == 'not-allowed') {
+        if (event.timeStamp - start_timestamp < 100) {
+        } else {
+        }
+        ignore_onend = true;
+      }
+    };
+
+    recognition.onend = function() {
+      recognizing = false;
+      if (ignore_onend) {
+        return;
+      }
+      start_img.src = '/images/mic.gif';
+      console.log('end');
+    };
+
+    recognition.onresult = function(event) {
+      var interim_transcript = '';
+      if (typeof(event.results) == 'undefined') {
+        recognition.onend = null;
+        recognition.stop();
+        return;
+      }
+      for (var i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          final_transcript += event.results[i][0].transcript;
+        } else {
+          interim_transcript += event.results[i][0].transcript;
+        }
+      }
+      console.log(interim_transcript, final_transcript);
+      final_transcript = capitalize(final_transcript);
+      var summernoteEditor = $("[data-edit=summernote]");
+      summernoteEditor.code(linebreak(final_transcript));
+    };
+  }
+
+  var two_line = /\n\n/g;
+  var one_line = /\n/g;
+  function linebreak(s) {
+    return s.replace(two_line, '<p></p>').replace(one_line, '<br>');
+  }
+
+  var first_char = /\S/;
+  function capitalize(s) {
+    return s.replace(first_char, function(m) { return m.toUpperCase(); });
+  }
+
+  function startButton(event) {
+    if (recognizing) {
+      recognition.stop();
+      return;
+    }
+    final_transcript = '';
+    interim_transcript = '';
+    recognition.lang = 'en-US';
+    recognition.start();
+    ignore_onend = false;
+    start_img.src = '/images/mic-slash.gif';
+    start_timestamp = event.timeStamp;
   }
 
   $(function(){
