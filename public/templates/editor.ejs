@@ -86,61 +86,65 @@
   var ignore_onend;
   var start_timestamp;
   if (!('webkitSpeechRecognition' in window)) {
-    $('#start_button').css('display', 'none');
+    $('#div_start').hide();
   } else {
-    $('#start_button').css('display', 'inline-block');
+    $('#div_start').show();
     var recognition = new webkitSpeechRecognition();
-    recognition.continuous = true;
-    recognition.interimResults = true;
+    if (!recognition) {
+      $('#div_start').hide();
+    } else {
+      recognition.continuous = true;
+      recognition.interimResults = true;
 
-    recognition.onstart = function() {
-      recognizing = true;
-      start_img.src = '/images/mic-animate.gif';
-    };
+      recognition.onstart = function() {
+        recognizing = true;
+        start_img.src = '/images/mic-animate.gif';
+      };
 
-    recognition.onerror = function(event) {
-      if (event.error == 'no-speech') {
-        start_img.src = '/images/mic.gif';
-        ignore_onend = true;
-      }
-      if (event.error == 'audio-capture') {
-        start_img.src = '/images/mic.gif';
-        ignore_onend = true;
-      }
-      if (event.error == 'not-allowed') {
-        if (event.timeStamp - start_timestamp < 100) {
-        } else {
+      recognition.onerror = function(event) {
+        if (event.error == 'no-speech') {
+          start_img.src = '/images/mic.gif';
+          ignore_onend = true;
         }
-        ignore_onend = true;
-      }
-    };
-
-    recognition.onend = function() {
-      recognizing = false;
-      if (ignore_onend) {
-        return;
-      }
-      start_img.src = '/images/mic.gif';
-    };
-
-    recognition.onresult = function(event) {
-      var interim_transcript = '';
-      if (typeof(event.results) == 'undefined') {
-        recognition.onend = null;
-        recognition.stop();
-        return;
-      }
-      for (var i = event.resultIndex; i < event.results.length; ++i) {
-        if (event.results[i].isFinal) {
-          final_transcript += event.results[i][0].transcript;
-        } else {
-          interim_transcript += event.results[i][0].transcript;
+        if (event.error == 'audio-capture') {
+          start_img.src = '/images/mic.gif';
+          ignore_onend = true;
         }
-      }
-      final_transcript = capitalize(final_transcript);
-      var summernoteEditor = $("[data-edit=summernote]");
-      summernoteEditor.code(linebreak(final_transcript));
-    };
+        if (event.error == 'not-allowed') {
+          if (event.timeStamp - start_timestamp < 100) {
+          } else {
+          }
+          ignore_onend = true;
+        }
+      };
+
+      recognition.onend = function() {
+        recognizing = false;
+        if (ignore_onend) {
+          return;
+        }
+        start_img.src = '/images/mic.gif';
+      };
+
+      recognition.onresult = function(event) {
+        var interim_transcript = '';
+        if (typeof(event.results) == 'undefined') {
+          recognition.onend = null;
+          recognition.stop();
+          return;
+        }
+        for (var i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            final_transcript += event.results[i][0].transcript;
+          } else {
+            interim_transcript += event.results[i][0].transcript;
+          }
+        }
+        final_transcript = capitalize(final_transcript);
+        var summernoteEditor = $("[data-edit=summernote]");
+        summernoteEditor.code(linebreak(final_transcript));
+      };
+    }
   }
 
   var two_line = /\n\n/g;
@@ -155,6 +159,10 @@
   }
 
   function startButton(event) {
+    if (!recognition) {
+      $('#div_start').hide();
+      return;
+    }
     if (recognizing) {
       recognition.stop();
       return;

@@ -180,7 +180,7 @@ define(['taskbar'], function(taskbar) {
 						composer.postContainer.innerHTML =	'<div class="post-div col-md-9 col-sm-10 col-xs-10">' +
 						'<input type="text" class="commenttitle" tabIndex="1" placeholder="Enter your topic title here..." />' +
 						'<textarea id="commentarea" class="commentarea" data-edit="summernote" data-chat="true" tabIndex="2"></textarea>' +
-						'<div id="div_start"><button id="start_button" onclick="startButton(event)" title="Voice comment" style="display: inline-block;"><img  alt="Voice comment" id="start_img" src="/images/mic.gif"></button></div>' +
+						'<div id="div_start"><button id="start_button" onclick="startButton(event)" title="Voice comment"><img  alt="Voice comment" id="start_img" src="/images/mic.gif"></button></div>' +
 						'<div class="btn-toolbar action-bar">' +
 						'<div class="btn-group pull-right">' +
 						'<button data-action="post" class="btn btn-primary" tabIndex="3">Submit</button>' +
