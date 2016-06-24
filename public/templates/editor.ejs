@@ -121,7 +121,6 @@
         return;
       }
       start_img.src = '/images/mic.gif';
-      console.log('end');
     };
 
     recognition.onresult = function(event) {
@@ -138,7 +137,6 @@
           interim_transcript += event.results[i][0].transcript;
         }
       }
-      console.log(interim_transcript, final_transcript);
       final_transcript = capitalize(final_transcript);
       var summernoteEditor = $("[data-edit=summernote]");
       summernoteEditor.code(linebreak(final_transcript));
