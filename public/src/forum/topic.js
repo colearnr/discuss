@@ -369,7 +369,7 @@ define(function() {
 
 				function createUserIcon(uid, picture, userslug, username) {
 					if (!picture) {
-						picture = '//d3k9jv14qr36q1.cloudfront.net/images/profile-icon.png';
+						picture = '/images/profile/profile_1.jpg';
 					}
 					if (!userslug) {
 						userslug = 'guest';

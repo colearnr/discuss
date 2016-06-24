@@ -223,7 +223,7 @@ function configure (uid, userSockets, sessionID, socket, lastPostTime) {
         uid: 0,
         username: 'Guest',
         email: '',
-        picture: '//d3k9jv14qr36q1.cloudfront.net/images/profile-icon.png'
+        picture: '/images/profile/profile_1.jpg'
       })
     }
 
@@ -440,14 +440,7 @@ function configure (uid, userSockets, sessionID, socket, lastPostTime) {
       if (result) {
         lastPostTime = Date.now()
         posts.getTopicPostStats()
-
-        socket.emit('event:alert', {
-          title: 'Reply Successful',
-          message: 'You have successfully replied to this thread.',
-          type: 'success',
-          timeout: 2000
-        })
-
+        
         if (data.category_id) {
           topics.getTopicData(data.topic_id, function (topicData) {
             // console.log(topicData)

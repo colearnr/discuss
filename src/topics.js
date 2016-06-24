@@ -47,7 +47,7 @@ var RDB = require('./redis.js'),
       user.getUserFields(topic.uid, ['username', 'userslug', 'picture'] , function (err, userData) {
         topic.username = userData.username || 'Guest'
         topic.userslug = userData.userslug || 'guest'
-        topic.picture = userData.picture || '//d3k9jv14qr36q1.cloudfront.net/images/profile-icon.png'
+        topic.picture = userData.picture || '/images/profile/profile_1.jpg'
         callback(topic)
       })
     })
@@ -345,7 +345,7 @@ var RDB = require('./redis.js'),
         callback({
           username: results[0].username || 'Guest',
           userslug: results[0].userslug || 'guest',
-          picture: results[0].picture || '//d3k9jv14qr36q1.cloudfront.net/images/profile-icon.png',
+          picture: results[0].picture || '/images/profile/profile_1.jpg',
           userbanned: results[0].banned,
           hasread: results[1],
           teaserInfo: results[2],
@@ -389,7 +389,7 @@ var RDB = require('./redis.js'),
 
           topicData.username = topicInfo.username || 'Guest'
           topicData.userslug = topicInfo.userslug || 'guest'
-          topicData.picture = topicInfo.picture || '//d3k9jv14qr36q1.cloudfront.net/images/profile-icon.png'
+          topicData.picture = topicInfo.picture || '/images/profile/profile_1.jpg'
           if (!topicInfo.categoryData) {
             topicInfo.categoryData = {}
           }
@@ -404,7 +404,7 @@ var RDB = require('./redis.js'),
           topicData.teaser_text = topicInfo.teaserInfo.text || '',
           topicData.teaser_username = topicInfo.teaserInfo.username || 'Guest'
           topicData.teaser_userslug = topicInfo.teaserInfo.userslug || 'guest'
-          topicData.teaser_userpicture = topicInfo.teaserInfo.picture || '//d3k9jv14qr36q1.cloudfront.net/images/profile-icon.png'
+          topicData.teaser_userpicture = topicInfo.teaserInfo.picture || '/images/profile/profile_1.jpg'
           topicData.teaser_pid = topicInfo.teaserInfo.pid
           topicData.teaser_timestamp = topicInfo.teaserInfo.timestamp ? (new Date(parseInt(topicInfo.teaserInfo.timestamp, 10)).toISOString()) : ''
 
@@ -572,7 +572,7 @@ var RDB = require('./redis.js'),
       topicData.teaser_userslug = teaser.userslug || 'guest'
       topicData.userslug = teaser.userslug || 'guest'
       topicData.teaser_timestamp = teaser.timestamp ? (new Date(parseInt(teaser.timestamp, 10)).toISOString()) : ''
-      topicData.teaser_userpicture = teaser.picture || '//d3k9jv14qr36q1.cloudfront.net/images/profile-icon.png'
+      topicData.teaser_userpicture = teaser.picture || '/images/profile/profile_1.jpg'
 
       callback(topicData)
     })
@@ -722,7 +722,7 @@ var RDB = require('./redis.js'),
                 'pid': postData.pid,
                 'username': userData.username || 'Guest',
                 'userslug': userData.userslug || 'guest',
-                'picture': userData.picture || '//d3k9jv14qr36q1.cloudfront.net/images/profile-icon.png',
+                'picture': userData.picture || '/images/profile/profile_1.jpg',
                 'timestamp': timestamp
               }
 

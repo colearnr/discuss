@@ -240,7 +240,9 @@ if (nconf.get('use_cluster') && cluster.isMaster) {
     async.series([
       function (next) {
         // Pre-router middlewares
-        app.use(helmet());
+        app.use(helmet({
+          frameguard: false
+        }));
         app.use(compression({threshold: 512}))
 
         app.use(favicon(path.join(__dirname, '../', 'public', 'favicon.ico')))

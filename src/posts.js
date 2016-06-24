@@ -62,7 +62,7 @@ var RDB = require('./redis.js'),
 				post.user_rep = userData.reputation || 0;
 				post.user_postcount = userData.postcount || 0;
 				post.user_banned = userData.banned || '0';
-				post.picture = userData.picture || '//d3k9jv14qr36q1.cloudfront.net/images/profile-icon.png';
+				post.picture = userData.picture || '/images/profile/profile_1.jpg';
 				post.signature = signature;
 
 				for (var info in customUserInfo) {

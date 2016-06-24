@@ -4,9 +4,6 @@
 <link rel="stylesheet" type="text/css" href="<%- app_home %>/stylesheets/summernote/summernote-overrides.css">
 
 <script type="text/javascript">
-</script>
-
-<script type="text/javascript">
 
   var summernoteEditorInit = function(){
     var $summernoteEditor;
@@ -90,14 +87,14 @@
           options = $.extend(options, minimal);
         } else if ($el.data("chat")) {
           var chat = { toolbar: [
-            ['style', ['bold', 'italic', 'underline', 'clear']],
-            ['layout', ['ul', 'ol']],
-            ['insert', ['embed', 'addTag', 'codeview']]
-          ]};
+            ['style', ['bold', 'italic', 'underline']]
+          ],
+            focus: true,
+            shortcuts: false
+          };
           options.height = '100px';
           options.minHeight = '100px';
           options.maxHeight = '100px';
-          options.focus = true;
           options = $.extend(options, chat);
         } else if ($el.data("info")) {
           var infoOpts = { toolbar: [
@@ -130,10 +127,10 @@
         $el.summernote(options);
         $('.note-editable').css('height', '100px').css('max-height', '100px');
         $('.note-editable').get(0).focus();
+        $('.note-editable').attr('x-webkit-speech', 'true');
       });
     }
   }
-
 
   $(function(){
     summernoteEditorInit();

@@ -1588,7 +1588,7 @@ noscript .posts li .profile span {
         bottom: -60px;
     }
     .note-editor {
-        margin-top: 5px;
+        margin-top: 0px;
     }
     .post-window > div .btn-toolbar.action-bar {
         margin-top: 3px;

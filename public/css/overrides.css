@@ -1,0 +1,68 @@
+/* Higher than 960 (desktop devices)
+====================================================================== */
+@media only screen and (min-width: 980px) and (max-width: 1199px) {
+
+}
+
+/* Tablet Portrait (devices and browsers)
+====================================================================== */
+@media only screen and (min-width: 768px) and (max-width: 979px) {
+
+}
+
+/* All Mobile Sizes (devices and browser)
+====================================================================== */
+@media only screen and (max-width: 767px) {
+    .post-row {
+        padding-bottom: 5px;
+    }
+    .post-block-wrapper {
+        padding-right: 10px;
+        padding-left: 2px;
+        padding-bottom: 0px;
+    }
+    .topic > ul > li {
+        padding-bottom: 5px;
+    }
+    .main-post .post-block {
+        max-height: 100px;
+        overflow: hidden;
+    }
+    .post-block .post-content {
+        font-size: 12px;
+        margin-left: 0px;
+        padding: 0px 5px 0px 0px !important;
+    }
+    .post-block .post-signature,
+    .post-block .topic-buttons {
+        display: none;
+    }
+    .profile-image-block {
+        display: inline !important;
+        float: left;
+    }
+    .profile-image-block img {
+        width: 40px !important;
+        height: 40px !important;
+        margin-left: 10px;
+    }
+    .navbar .nav > li > a {
+        padding: 10px 10px;
+    }
+    .post-info {
+        display: none;
+    }
+    .action-bar {
+        display: none;
+    }
+    .post-window {
+        height: 145px;
+    }
+    .post-window > div {
+        background: #FFF;
+        padding: 0 0px 0 0px;
+    }
+    .topic .main-post .post-info, .topic .sub-posts .post-info, .topic .main-post .post-block, .topic .sub-posts .post-block {
+        padding: 5px;
+    }
+}

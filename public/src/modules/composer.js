@@ -248,7 +248,12 @@ define(['taskbar'], function(taskbar) {
 				// Mark this post window as having been changed
 				composer.posts[uuid].modified = true;
 			});
-
+      jPostContainer.on('keyup', '.note-editable', function(e) {
+        if ($('.action-bar').css('display') === 'none' && e.which === 13 && !e.shiftKey) {
+          var uuid = $(this).parents('.post-window').attr('data-uuid');
+          composer.post(uuid);
+        }
+      });
 			jPostContainer.on('click', '.action-bar button', function() {
 				var	action = this.getAttribute('data-action'),
 				uuid = $(this).parents('.post-window').attr('data-uuid');
