@@ -1,7 +1,7 @@
 {
   "name": "discuss-app",
   "description": "CoLearnr discussion Forum",
-  "version": "1.0.0-alpha1",
+  "version": "1.0.0-alpha2",
   "homepage": "https://www.colearnr.com",
   "license": "GPL-3.0",
   "private": false,
@@ -20,6 +20,8 @@
     "bitly": "^4.1.1",
     "body-parser": "^1.14.2",
     "cheerio": "^0.20.0",
+    "colearnr-extract-app": "^1.0.0-alpha3",
+    "colearnr-sdk": "^1.0.0-alpha2",
     "compression": "^1.6.0",
     "connect-redis": "^3.0.2",
     "cookie": "^0.3.1",

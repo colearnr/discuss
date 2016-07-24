@@ -30,5 +30,6 @@
     "upload_server_prefix": "",
     "use_cluster": false,
     "mongo_username": null,
-    "mongo_password": null
+    "mongo_password": null,
+    "filterContent": false
 }

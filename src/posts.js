@@ -16,6 +16,8 @@ var RDB = require('./redis.js'),
 	reds = require('./reds'),
 	postSearch = reds.createSearch('nodebbpostsearch'),
 	nconf = require('nconf'),
+	NlpLib = require('colearnr-extract-app').Nlp,
+	NlpAnalyser = new NlpLib(),
 	meta = require('./meta.js'),
 	log = require('./log'),
 	winston = require('winston');
@@ -351,97 +353,109 @@ var RDB = require('./redis.js'),
 	}
 
 	Posts.create = function(uid, tid, content, privacy_mode, callback) {
-		log.log('debug', 'Posts.create', uid, tid, content, privacy_mode);
+		function doProcess(uid, tid, content, privacy_mode, callback) {
+			topics.isLocked(tid, function (locked) {
+				if (!locked || locked === '0') {
+					RDB.incr('global:next_post_id', function (err, pid) {
+						RDB.handle(err);
+
+						plugins.fireHook('filter:post.save', content, function (err, newContent) {
+							if (!err) content = newContent;
+
+							var timestamp = Date.now(),
+								postData = {
+									'pid': pid,
+									'uid': uid,
+									'tid': tid,
+									'content': content,
+									'timestamp': timestamp,
+									'privacy_mode': privacy_mode || 'public',
+									'reputation': 0,
+									'editor': '',
+									'edited': 0,
+									'deleted': 0,
+									'fav_button_class': '',
+									'fav_star_class': 'fa fa-star-o',
+									'show_banned': 'hide',
+									'relativeTime': new Date(timestamp).toISOString(),
+									'post_rep': '0',
+									'edited-class': 'none',
+									'relativeEditTime': ''
+								};
+
+							RDB.hmset('post:' + pid, postData);
+
+							topics.addPostToTopic(tid, pid);
+							topics.increasePostCount(tid);
+							topics.updateTimestamp(tid, timestamp);
+
+							RDB.incr('totalpostcount');
+
+							topics.getTopicFields(tid, [ 'cid', 'pinned' ], function (err, topicData) {
+
+								RDB.handle(err);
+
+								var cid = topicData.cid;
+
+								//feed.updateTopic(tid);
+
+								RDB.zadd('categories:recent_posts:cid:' + cid, timestamp, pid);
+
+								if (topicData.pinned === '0')
+									RDB.zadd('categories:' + cid + ':tid', timestamp, tid);
+
+								RDB.scard('cid:' + cid + ':active_users', function (err, amount) {
+									if (amount > 10) {
+										RDB.spop('cid:' + cid + ':active_users');
+									}
+
+									categories.addActiveUser(cid, uid);
+								});
+							});
+
+							user.onNewPostMade(uid, tid, pid, timestamp);
+
+							async.parallel({
+								content: function (next) {
+									plugins.fireHook('filter:post.get', postData, function (err, newPostData) {
+										if (!err) postData = newPostData;
+
+										postTools.parse(postData.content, function (err, content) {
+											next(null, content);
+										});
+									});
+								}
+							}, function (err, results) {
+								postData.content = results.content;
+								callback(postData);
+							});
+
+							plugins.fireHook('action:post.save', postData);
+
+							postSearch.index(content, pid);
+						});
+					});
+				} else {
+					callback(null);
+				}
+			});
+		}
+
 		if (uid === null) {
 			callback(null);
 			return;
 		}
+		if (nconf.get('filterContent')) {
+			//log.log('debug', 'filtering', content);
+			NlpAnalyser.purifyText(content, null, function(err, filteredContent) {
+				log.log('debug', filteredContent)
+				doProcess(uid, tid, filteredContent, privacy_mode, callback);
+			});
+		} else {
+			//log.log('debug', 'Posts.create', uid, tid, content, privacy_mode);
+			doProcess(uid, tid, content, privacy_mode, callback);
+		}
 
-		topics.isLocked(tid, function(locked) {
-			if (!locked || locked === '0') {
-				RDB.incr('global:next_post_id', function(err, pid) {
-					RDB.handle(err);
-
-					plugins.fireHook('filter:post.save', content, function(err, newContent) {
-						if (!err) content = newContent;
-
-						var timestamp = Date.now(),
-							postData = {
-								'pid': pid,
-								'uid': uid,
-								'tid': tid,
-								'content': content,
-								'timestamp': timestamp,
-								'privacy_mode' : privacy_mode || 'public',
-								'reputation': 0,
-								'editor': '',
-								'edited': 0,
-								'deleted': 0,
-								'fav_button_class': '',
-								'fav_star_class': 'fa fa-star-o',
-								'show_banned': 'hide',
-								'relativeTime': new Date(timestamp).toISOString(),
-								'post_rep': '0',
-								'edited-class': 'none',
-								'relativeEditTime': ''
-							};
-
-						RDB.hmset('post:' + pid, postData);
-
-						topics.addPostToTopic(tid, pid);
-						topics.increasePostCount(tid);
-						topics.updateTimestamp(tid, timestamp);
-
-						RDB.incr('totalpostcount');
-
-						topics.getTopicFields(tid, ['cid', 'pinned'], function(err, topicData) {
-
-							RDB.handle(err);
-
-							var cid = topicData.cid;
-
-							//feed.updateTopic(tid);
-
-							RDB.zadd('categories:recent_posts:cid:' + cid, timestamp, pid);
-
-							if(topicData.pinned === '0')
-								RDB.zadd('categories:' + cid + ':tid', timestamp, tid);
-
-							RDB.scard('cid:' + cid + ':active_users', function(err, amount) {
-								if (amount > 10) {
-									RDB.spop('cid:' + cid + ':active_users');
-								}
-
-								categories.addActiveUser(cid, uid);
-							});
-						});
-
-						user.onNewPostMade(uid, tid, pid, timestamp);
-
-						async.parallel({
-							content: function(next) {
-								plugins.fireHook('filter:post.get', postData, function(err, newPostData) {
-									if (!err) postData = newPostData;
-
-									postTools.parse(postData.content, function(err, content) {
-										next(null, content);
-									});
-								});
-							}
-						}, function(err, results) {
-							postData.content = results.content;
-							callback(postData);
-						});
-
-						plugins.fireHook('action:post.save', postData);
-
-						postSearch.index(content, pid);
-					});
-				});
-			} else {
-				callback(null);
-			}
-		});
 	}
 
 	Posts.uploadPostImage = function(image, callback) {

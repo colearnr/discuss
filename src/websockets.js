@@ -440,7 +440,7 @@ function configure (uid, userSockets, sessionID, socket, lastPostTime) {
       if (result) {
         lastPostTime = Date.now()
         posts.getTopicPostStats()
-        
+
         if (data.category_id) {
           topics.getTopicData(data.topic_id, function (topicData) {
             // console.log(topicData)
