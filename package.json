@@ -20,7 +20,7 @@
     "bitly": "^4.1.1",
     "body-parser": "^1.14.2",
     "cheerio": "^0.20.0",
-    "colearnr-extract-app": "^1.0.0-alpha6",
+    "colearnr-extract-app": "^1.0.0-alpha7",
     "colearnr-sdk": "^1.0.0-alpha2",
     "compression": "^1.6.0",
     "connect-redis": "^3.0.2",
