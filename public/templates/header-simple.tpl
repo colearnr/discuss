@@ -12,11 +12,14 @@
 	<link rel="stylesheet" href="{pluginCSS.path}">
 	<!-- END pluginCSS -->
 	<script>
-		var RELATIVE_PATH = "{relative_path}";
+	var RELATIVE_PATH = "{relative_path}";
         var SOCKET_SERVER = "{socket_server}";
-		var APP_HOME = "{app_home}";
+	var APP_HOME = "{app_home}";
         var APP_HOME_HTTP = "{app_home_http}";
         var APP_HOME_HTTPS = "{app_home_https}";
+        if ("{documentDomain}" !== "") {
+            document.domain = "{documentDomain}";
+        }
 	</script>
 	<script src="{relative_path}/socket.io/socket.io.js"></script>
 	<!-- BEGIN clientScripts -->
