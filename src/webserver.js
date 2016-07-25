@@ -193,7 +193,8 @@ if (nconf.get('use_cluster') && cluster.isMaster) {
             meta_tags: metaString,
             link_tags: linkTags,
             clientScripts: clientScripts,
-            navigation: custom_header.navigation
+            navigation: custom_header.navigation,
+            documentDomain: nconf.get('cookieDomain') && nconf.get('cookieDomain') !== 'localhost' ? nconf.get('cookieDomain').substring(1) : ""
           }
 
         var uid = null

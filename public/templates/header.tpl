@@ -17,6 +17,9 @@
 		var APP_HOME = "{app_home}";
 		var APP_HOME_HTTP = "{app_home_http}";
 		var APP_HOME_HTTPS = "{app_home_https}";
+                if ("{documentDomain}" !== "") {
+		    document.domain = "{documentDomain}";
+                }
 	</script>
 	<script src="{relative_path}/socket.io/socket.io.js"></script>
 	<script src="{cdn_prefix}/vendor/mousetrap/mousetrap-1.4.6.min.js"></script>
