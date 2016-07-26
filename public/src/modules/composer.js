@@ -181,12 +181,6 @@ define(['taskbar'], function(taskbar) {
 						'<input type="text" class="commenttitle" tabIndex="1" placeholder="Enter your topic title here..." />' +
 						'<textarea id="commentarea" class="commentarea" data-edit="summernote" data-chat="true" tabIndex="2"></textarea>' +
 						'<div id="div_start"><button id="start_button" onclick="startButton(event)" title="Voice comment"><img  alt="Voice comment" id="start_img" src="/images/mic.gif"></button></div>' +
-						'<div class="btn-toolbar action-bar">' +
-						'<div class="btn-group pull-right">' +
-						'<button data-action="post" class="btn btn-primary" tabIndex="3">Submit</button>' +
-						'<button class="btn btn-default" data-action="discard" tabIndex="4"><i class="fa fa-times"></i> Cancel</button>' +
-						'</div>' +
-						'</div>' +
 						'</div>';
 
 						document.body.insertBefore(composer.postContainer, taskbar);
@@ -250,7 +244,7 @@ define(['taskbar'], function(taskbar) {
 				composer.posts[uuid].modified = true;
 			});
       jPostContainer.on('keyup', '.note-editable', function(e) {
-        if ($('.action-bar').css('display') === 'none' && e.which === 13 && !e.shiftKey) {
+        if (e.which === 13 && !e.shiftKey) {
           var uuid = $(this).parents('.post-window').attr('data-uuid');
           composer.post(uuid);
         }

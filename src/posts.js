@@ -376,7 +376,7 @@ var RDB = require('./redis.js'),
 			} else if (sentimentData.valence === 'positive') {
 				sentimentIcon = 'fa-smile-o'
 			}
-			sentimentIcon = '<i class="fa ' + sentimentIcon + '"></i>'
+			sentimentIcon = '<i title="' + sentimentData.valence + '" class="fa ' + sentimentIcon + '"></i>'
 			topics.isLocked(tid, function (locked) {
 				if (!locked || locked === '0') {
 					RDB.incr('global:next_post_id', function (err, pid) {

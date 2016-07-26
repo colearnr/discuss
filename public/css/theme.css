@@ -472,7 +472,7 @@ body {
     background: rgba(0, 0, 0, 0.02);
     margin: 15px -11px -11px -11px;
     border-radius: 0 0 5px 5px;
-    font-size: 10px;
+    font-size: 1em;
     color: #777
 }
 
@@ -1458,7 +1458,7 @@ noscript .posts li .profile span {
 .post-window {
     position: fixed;
     display: none;
-    height: 240px;
+    height: 180px;
     width: 100%;
 }
 
@@ -1511,7 +1511,7 @@ noscript .posts li .profile span {
     -webkit-border-radius: 0;
     -moz-border-radius: 0;
     border-radius: 0;
-    margin: 5px auto 10px auto;
+    margin: 1px auto 1px auto;
     display: block
 }
 
@@ -1566,7 +1566,7 @@ noscript .posts li .profile span {
 
 @media(max-width:990px){
     .post-window {
-        height: 190px;
+        height: 150px;
     }
 }
 
@@ -1580,7 +1580,7 @@ noscript .posts li .profile span {
         margin-bottom: 0px;
         margin-left: 0px;
         margin-right: 0px;
-        height: 190px;
+        height: 150px;
     }
     .post-window>div {
         position: static;
@@ -1690,4 +1690,15 @@ noscript .posts li .profile span {
     border: 0;
     background-color:transparent;
     padding: 1px;
+}
+.fa-frown-o {
+    color: #F44336;
+}
+
+.fa-smile-o {
+    color: #009688;
+}
+
+.fa-meh-o {
+    color: #607d8b;
 }
