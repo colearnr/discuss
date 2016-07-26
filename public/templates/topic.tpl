@@ -112,6 +112,9 @@
 								<span class="label label-danger {posts.show_banned}">[[topic:banned]]</span>
 							</a>
 							</span>
+							<span class="pull-left">
+							{posts.sentimentIcon}&nbsp;{posts.sentimentPolarity}
+							</span>
 							<span class="pull-right">
 								posted <span class="relativeTimeAgo timeago" title="{posts.relativeTime}"></span> by <a href="{posts.userslugurl}">{posts.username}</a>
 								<span class="{posts.edited-class}">| last edited by <strong><a href="/user/{posts.editorslug}">{posts.editorname}</a></strong></span>

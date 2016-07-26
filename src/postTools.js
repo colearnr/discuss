@@ -27,7 +27,7 @@ var RDB = require('./redis.js'),
 	}
 
 	PostTools.privileges = function(pid, uid, callback) {
-		log.log('debug', 'PostTools.privileges', pid, uid);
+		// log.log('debug', 'PostTools.privileges', pid, uid);
 		if(!uid) {
 			callback({
 				editable: false,
@@ -49,7 +49,7 @@ var RDB = require('./redis.js'),
 
 		function isOwnPost(next) {
 			posts.getPostField(pid, 'uid', function(author) {
-				log.log('debug', 'PostTools.isOwnPost', pid, uid, author);
+				// log.log('debug', 'PostTools.isOwnPost', pid, uid, author);
 				next(null, author == uid);
 			});
 		}
@@ -57,14 +57,14 @@ var RDB = require('./redis.js'),
 		function hasEnoughRep(next) {
 			user.getUserField(uid, 'reputation', function(err, reputation) {
 				if (err) return next(null, false);
-				log.log('debug', 'PostTools.hasEnoughRep', uid, reputation, meta.config['privileges:manage_content']);
+				// log.log('debug', 'PostTools.hasEnoughRep', uid, reputation, meta.config['privileges:manage_content']);
 				var minReputationNeeded = meta.config['privileges:manage_content'] || 1000;
 				next(null, parseInt(reputation, 10) >= minReputationNeeded);
 			});
 		}
 
 		async.parallel([getCategoryPrivileges, isOwnPost, hasEnoughRep], function(err, results) {
-			//log.log('debug', 'results', pid, uid, results);
+			// log.log('debug', 'results', pid, uid, results);
 			callback({
 				editable: results[0].editable || results[1] || results[2],
 				collaborate: results[0].collaborate,
@@ -75,7 +75,7 @@ var RDB = require('./redis.js'),
 
 
 	PostTools.edit = function(uid, pid, title, content) {
-		log.log('debug', 'PostTools.edit', uid, pid, title, content);
+		// log.log('debug', 'PostTools.edit', uid, pid, title, content);
 		var	success = function() {
 			async.waterfall([
 				function(next) {
@@ -92,18 +92,18 @@ var RDB = require('./redis.js'),
 				}
 			]);
 
-			log.log('debug', 'PostTools.edit', 'Updating search index for pid', pid);
+			// log.log('debug', 'PostTools.edit', 'Updating search index for pid', pid);
 			postSearch.remove(pid, function() {
 				postSearch.index(content, pid);
 			});
 
-			log.log('debug', 'async.parallel');
+			// log.log('debug', 'async.parallel');
 			async.parallel([
 				function(next) {
-					log.log('debug', 'async.parallel first fn');
+					// log.log('debug', 'async.parallel first fn');
 					posts.getPostField(pid, 'tid', function(tid) {
 						PostTools.isMain(pid, tid, function(isMainPost) {
-							log.log('debug', 'async.parallel isMainPost', isMainPost);
+							// log.log('debug', 'async.parallel isMainPost', isMainPost);
 							if (isMainPost) {
 								topics.setTopicField(tid, 'title', title);
 								topicSearch.remove(tid, function() {
@@ -119,11 +119,11 @@ var RDB = require('./redis.js'),
 					});
 				},
 				function(next) {
-					log.log('debug', 'call parse');
+					// log.log('debug', 'call parse');
 					PostTools.parse(content, next);
 				}
 			], function(err, results) {
-				log.log('debug', 'emit event edited' + results[0]);
+				// log.log('debug', 'emit event edited' + results[0]);
 				io.sockets.in('topic_' + results[0].tid).emit('event:post_edited', {
 					pid: pid,
 					title: validator.escape(title),
@@ -134,7 +134,7 @@ var RDB = require('./redis.js'),
 		};
 
 		PostTools.privileges(pid, uid, function(privileges) {
-			log.log('debug', 'PostTools.privileges', privileges);
+			// log.log('debug', 'PostTools.privileges', privileges);
 			if (privileges.editable || privileges.collaborate) {
 				plugins.fireHook('filter:post.save', content, function(err, parsedContent) {
 					if (!err) content = parsedContent;
@@ -145,7 +145,7 @@ var RDB = require('./redis.js'),
 	}
 
 	PostTools.delete = function(uid, pid, callback) {
-		log.log('debug', 'PostTools.delete', uid, pid);
+		// log.log('debug', 'PostTools.delete', uid, pid);
 		var success = function() {
 			posts.setPostField(pid, 'deleted', 1);
 			RDB.decr('totalpostcount');

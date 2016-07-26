@@ -26,7 +26,7 @@ var RDB = require('./redis.js'),
 	var customUserInfo = {};
 
 	Posts.getPostsByTid = function(tid, start, end, callback) {
-		log.log('debug', 'getPostsByTid', tid, start, end);
+		//log.log('debug', 'getPostsByTid', tid, start, end);
 		RDB.lrange('tid:' + tid + ':posts', start, end, function(err, pids) {
 			RDB.handle(err);
 
@@ -35,10 +35,22 @@ var RDB = require('./redis.js'),
 					if (!err & 0 < posts.length) {
 						Posts.getPostsByPids(pids, function(err, posts) {
 							plugins.fireHook('action:post.gotTopic', posts);
-							callback(posts);
+							let newPosts = []
+							posts.forEach(function (post) {
+								post.sentimentIcon = post.sentimentIcon || '';
+								post.sentimentPolarity = post.sentimentPolarity || '';
+								newPosts.push(post);
+							});
+							callback(newPosts);
 						});
 					} else {
-						callback(posts);
+						let newPosts = []
+						posts.forEach(function (post) {
+							post.sentimentIcon = post.sentimentIcon || '';
+							post.sentimentPolarity = post.sentimentPolarity || '';
+							newPosts.push(post);
+						});
+						callback(newPosts);
 					}
 				});
 			} else {
@@ -145,7 +157,7 @@ var RDB = require('./redis.js'),
 
 	// TODO: this function is never called except from some debug route. clean up?
 	Posts.getPostData = function(pid, callback) {
-		log.log('debug', 'getPostData', pid);
+		//log.log('debug', 'getPostData', pid);
 		RDB.hgetall('post:' + pid, function(err, data) {
 			if (err === null) {
 				plugins.fireHook('filter:post.get', data, function(err, newData) {
@@ -195,7 +207,7 @@ var RDB = require('./redis.js'),
 	}
 
 	Posts.setPostField = function(pid, field, value, done) {
-		log.log('info', 'Posts.setPostField', pid, field, value);
+		//log.log('info', 'Posts.setPostField', pid, field, value);
 		RDB.hset('post:' + pid, field, value);
 		plugins.fireHook('action:post.setField', {
 			'pid': pid,
@@ -205,7 +217,7 @@ var RDB = require('./redis.js'),
 	}
 
 	Posts.getPostsByPids = function(pids, callback) {
-		log.log('debug', 'getPostsByPids', pids);
+		//log.log('debug', 'getPostsByPids', pids);
 		var posts = [],
 			multi = RDB.multi();
 
@@ -222,6 +234,8 @@ var RDB = require('./redis.js'),
 					try {
 						postData.relativeTime = new Date(parseInt(postData.timestamp,10)).toISOString();
 						postData['relativeEditTime'] = postData.edited !== '0' ? (new Date(parseInt(postData.edited,10)).toISOString()) : '';
+						postData.sentimentPolarity = postData.sentimentPolarity || '';
+						postData.sentimentIcon = postData.sentimentIcon || '';
 					} catch(e) {
 						winston.err('invalid time value');
 					}
@@ -308,7 +322,7 @@ var RDB = require('./redis.js'),
 	}
 
 	Posts.reply = function(tid, uid, content, privacy_mode, callback) {
-		log.log('debug', 'Posts.reply', uid, tid, privacy_mode);
+		//log.log('debug', 'Posts.reply', uid, tid, privacy_mode);
 		if(content) {
 			content = content.trim();
 		}
@@ -353,7 +367,16 @@ var RDB = require('./redis.js'),
 	}
 
 	Posts.create = function(uid, tid, content, privacy_mode, callback) {
-		function doProcess(uid, tid, content, privacy_mode, callback) {
+		function doProcess(uid, tid, content, privacy_mode, sentimentData, callback) {
+			console.log(sentimentData)
+			sentimentData = sentimentData.overallScore || {};
+			let sentimentIcon = 'fa-meh-o';
+			if (sentimentData.valence === 'negative') {
+				sentimentIcon = 'fa-frown-o'
+			} else if (sentimentData.valence === 'positive') {
+				sentimentIcon = 'fa-smile-o'
+			}
+			sentimentIcon = '<i class="fa ' + sentimentIcon + '"></i>'
 			topics.isLocked(tid, function (locked) {
 				if (!locked || locked === '0') {
 					RDB.incr('global:next_post_id', function (err, pid) {
@@ -380,7 +403,9 @@ var RDB = require('./redis.js'),
 									'relativeTime': new Date(timestamp).toISOString(),
 									'post_rep': '0',
 									'edited-class': 'none',
-									'relativeEditTime': ''
+									'relativeEditTime': '',
+									'sentimentIcon': sentimentIcon,
+									'sentimentPolarity': sentimentData.polarity ? '(' + sentimentData.polarity + ')' : ''
 								};
 
 							RDB.hmset('post:' + pid, postData);
@@ -448,12 +473,16 @@ var RDB = require('./redis.js'),
 		if (nconf.get('filterContent')) {
 			//log.log('debug', 'filtering', content);
 			NlpAnalyser.purifyText(content, null, function(err, filteredContent) {
-				log.log('debug', filteredContent)
-				doProcess(uid, tid, filteredContent, privacy_mode, callback);
+				//log.log('debug', filteredContent)
+				NlpAnalyser.sentiment(content, function (err, sentimentData) {
+					doProcess(uid, tid, filteredContent, privacy_mode, sentimentData, callback);
+				});
 			});
 		} else {
-			//log.log('debug', 'Posts.create', uid, tid, content, privacy_mode);
-			doProcess(uid, tid, content, privacy_mode, callback);
+			NlpAnalyser.sentiment(content, function (err, sentimentData) {
+				//log.log('debug', 'Posts.create', uid, tid, content, privacy_mode);
+				doProcess(uid, tid, content, privacy_mode, sentimentData, callback);
+			});
 		}
 
 	}
