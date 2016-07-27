@@ -76,8 +76,8 @@
     </style>
 </head>
 
-<body style="background: #FFFFFF; margin: 0px; padding: 10px 0 10px 0; width: 100%;">
+<body style="background: #FFFFFF; margin: 0px; padding: 10px 5px 10px 5px; width: 100%;">
 
 	<input id="csrf_token" type="hidden" template-variable="csrf" value="{csrf}" />
 
-	<div class="container" id="content">
+	<div class="" id="content">
