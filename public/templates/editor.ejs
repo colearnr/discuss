@@ -27,7 +27,7 @@
 
         if ($el.data("minimal")) {
           var minimal = { toolbar: [
-            ['style', ['bold', 'italic', 'underline', 'clear']],
+            ['style', ['bold', 'italic', 'underline', 'addTag']],
             ['layout', ['ul', 'ol']]
           ]};
           options.height = '100px';
@@ -37,7 +37,7 @@
           options = $.extend(options, minimal);
         } else if ($el.data("chat")) {
           var chat = { toolbar: [
-            ['style', ['bold', 'italic', 'underline']]
+            ['style', ['bold', 'italic', 'underline', 'addTag']]
           ],
             focus: true,
             shortcuts: false
