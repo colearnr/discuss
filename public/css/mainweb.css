@@ -695,11 +695,6 @@ body .modal {
     display: inline;
 }
 
-.post-window>div {
-    background: rgba(184,184,184,0.9);
-    padding: 1px;
-}
-
 .post-window>div .commenttitle {
     width: 100%;
     font-size: 14px;
@@ -1678,10 +1673,10 @@ tr#idTagSelBottomRow_editorobj2 {
 }
 
 .note-editor .columns {
-  height: 140px;
-  width: 400px;
+  height: 100px;
+  width: 500px;
   overflow:scroll;
-  -moz-column-count: 3; /* Firefox */
-  -webkit-column-count: 3; /* Safari and Chrome */
-  column-count: 3;
+  -moz-column-count: 4; /* Firefox */
+  -webkit-column-count: 4; /* Safari and Chrome */
+  column-count: 4;
 }

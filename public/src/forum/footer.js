@@ -165,34 +165,6 @@
 		});
 	}
 
-	socket.on('event:new_notification', function() {
-		document.querySelector('.notifications a i').className = 'fa fa-circle active';
-		app.alert({
-			alert_id: 'new_notif',
-			title: 'New notification',
-			message: 'You have unread notifications.',
-			type: 'warning',
-			timeout: 2000
-		});
-		utils.refreshTitle();
-	});
-
-
-	socket.on('chatMessage', function(data) {
-
-		require(['chat'], function(chat) {
-			var modal = null;
-			if (chat.modalExists(data.fromuid)) {
-				modal = chat.getModal(data.fromuid);
-				chat.appendChatMessage(modal, data.message, data.timestamp);
-			} else {
-				modal = chat.createModal(data.username, data.fromuid);
-			}
-
-			chat.load(modal.attr('UUID'));
-		});
-	});
-
 	require(['mobileMenu'], function(mobileMenu) {
 		mobileMenu.init();
 	});

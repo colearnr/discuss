@@ -176,9 +176,9 @@ define(['taskbar'], function(taskbar) {
 						var taskbar = document.getElementById('taskbar');
 
 						composer.postContainer = document.createElement('div');
-						composer.postContainer.className = 'post-window row';
-						composer.postContainer.innerHTML =	'<div class="post-div col-md-9 col-sm-10 col-xs-10">' +
-						'<input type="text" class="commenttitle" tabIndex="1" placeholder="Enter your topic title here..." />' +
+						composer.postContainer.className = 'post-window';
+						composer.postContainer.innerHTML =	'<div class="post-div">' +
+            '<input type="text" class="commenttitle hide" tabIndex="1" placeholder="Enter your topic title here..." />' +
 						'<textarea id="commentarea" class="commentarea" data-edit="summernote" data-chat="true" tabIndex="2"></textarea>' +
 						'<div id="div_start"><button id="start_button" onclick="startButton(event)" title="Voice comment"><img  alt="Voice comment" id="start_img" src="/images/mic.gif"></button></div>' +
 						'</div>';
@@ -339,6 +339,11 @@ define(['taskbar'], function(taskbar) {
 		//bodyEl.value = bodyEl.value.trim();
 		var summernoteEditor = $("[data-edit=summernote]");
 		var bodyVal = summernoteEditor.code();
+
+    var EMPTY_VALUES = ['', '<br>', '&nbsp;', '<div><br></div><div><br></div>', '<div><br></div>'];
+    if (!bodyVal || EMPTY_VALUES.indexOf(bodyVal) !== -1) {
+      return;
+    }
 
 		if(uploadsInProgress.length) {
 			return app.alert({
